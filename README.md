@@ -9,7 +9,7 @@ Please cite
   volume={},
   number={},
   pages={1-9},
-  keywords={Adaptation models;Wireless sensor networks;Accuracy;Frequency modulation;Acoustics;Sensors;Multiple signal classification;Smart devices;Monitoring;Research and development;acoustic sensing;wireless perception;audio generation},
+  keywords={acoustic sensing; wireless perception; audio generation},
   doi={10.1109/ICCCN65249.2025.11134003}}
 
 ```
