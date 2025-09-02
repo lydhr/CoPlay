@@ -1,0 +1,84 @@
+data:
+    base_folder_path: "data"
+    datasets:
+        youtubeMix:
+            folder_path: "${data.base_folder_path}/youtubeMix"
+        beethoven:
+            folder_path: "${data.base_folder_path}/beethoven/download"
+    dataloader_num_workers: 32
+model:
+    path: "saved/models/saved_model_${model.arch}_${signal.type}.pth"    
+    arch: "WaveNet"
+    batch_size: 65536
+    train:
+        n_epoch: 10
+        dataloader:
+            shuffle: true
+            num_workers: ${data.dataloader_num_workers}
+            batch_size: ${model.batch_size}
+        checkpoint:
+            do_load: false
+            do_save: false
+            save_path: ${model.path}
+            load_path: ${model.path}
+        do_evaluate: true
+        anchor_eval_loss: true
+        optimizer:
+            lr: 0.1
+    evaluate:
+        dataloader:
+            shuffle: false
+            num_workers: ${data.dataloader_num_workers}
+            batch_size: ${model.batch_size}
+        do_plot: true
+        plot: ${plot}
+        output:
+            do_save: false
+            path: "./validation.pkl"
+    predict:
+        checkpoint:
+            do_load: false
+            load_path: ${model.path}
+        dataloader: ${..evaluate.dataloader}
+        output:
+            do_save: false
+            path: "./prediction.pkl" # The hydra.run or sweep folder
+    loss:
+        type: ${signal.type}
+        fft: ${signal.fft}
+        weights:
+            target_f_loss: 1
+            recover_loss: 1
+            amplitude_loss: ${eval:3-${.target_f_loss}-${.recover_loss}}
+            variance_loss: 1
+signal:
+    fs: 48000
+    window_size: 512
+    numerical_range: 32767 #2**15-1
+    type: "FMCW" # {"FMCW", "sine"}
+    FMCW:
+        frequency: {'start': 18000, 'end': 20000}
+    sine:
+        frequency: 18000
+    fft:
+        window_size: ${..window_size}
+        bin_width: ${eval:${..fs}/${.window_size}}
+        target_frequency: ${..${..type}.frequency}
+    music_m_scaler: 1 # percent of numerical_range
+
+plot:
+    show: false
+    ylim_max: ${.${signal.type}.ylim_max}
+    FMCW:
+      ylim_max: 0.25
+    sine:
+      ylim_max: 1
+    down_sample: 50
+
+seed: 0
+
+hydra:
+  run:
+    dir: ./saved/logs/${now:%Y-%m-%d-%H-%M-%S}
+  sweep:
+    dir: ./saved/logs/${now:%Y-%m-%d-%H-%M-%S}
